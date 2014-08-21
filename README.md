@@ -9,10 +9,8 @@ Usage
 Usage: alanine_scanning.py &lt;protein-ligand complex pdb file&gt; &lt;ligand_resno&gt; &lt;pocket_distance_cutoff&gt; &lt;directory to store results&gt;
 </code></br>
 
-
 Ex:<code> ./alanine_scanning.py 1a4g_A.pdb 466 4.5 test</code>
 </br>
-
 
 In the above example :
 
