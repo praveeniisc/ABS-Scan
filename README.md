@@ -3,6 +3,12 @@ ABS-Scan
 
 Alanine binding site scanning mutagenesis for evaluting the contribution of individual residues at the binding site towards small-molecule ligand recognition.
 
+
+Web-server
+=========
+We strongly encourage the use of webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
+
+
 Usage
 ======
 <code>
@@ -21,3 +27,14 @@ In the above example :
 4.5 -- is the distance cut-off used to select the binding site residues from mentioned ligand atom
 
 test -- is the directory that would be created to store the results.
+
+Dependencies
+============
+Please ensure following are installed on your system:
+<ul>
+<li><a href="https://salilab.org/modeller/" target="_blank">Modeller</a></li>
+<li><a href="http://mgltools.scripps.edu/downloads" target="_blank">MGL autodockTools</a></li>
+<li><a href="www.pymol.org/" target="_blank">Pymol</a></li>
+</ul>
+
+
