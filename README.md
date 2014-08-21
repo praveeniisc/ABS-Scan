@@ -10,7 +10,7 @@ Usage: alanine_scanning.py &lt;protein-ligand complex pdb file&gt; &lt;ligand_re
 </code></br>
 
 
-Ex: ./alanine_scanning.py 1a4g_A.pdb 466 4.5 test
+Ex:<code> ./alanine_scanning.py 1a4g_A.pdb 466 4.5 test</code>
 </br>
 
 
