@@ -8,21 +8,21 @@ Web-server
 =========
 We strongly recommend user-friendly webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
 
-Graphical output provided on webserver
+Graphical output provided on webserver:
 
 <table>
 <tr>
 <td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="325px" />
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="350px" />
 </td>
 <td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="325px"/>
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="350px"/>
 </td>
 </tr>
 </table>
 
-Usage
-======
+Command-line usage
+==================
 <code>
 Usage: alanine_scanning.py &lt;protein-ligand complex pdb file&gt; &lt;ligand_resno&gt; &lt;pocket_distance_cutoff&gt; &lt;directory to store results&gt;
 </code></br>
