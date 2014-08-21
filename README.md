@@ -6,7 +6,10 @@ Alanine binding site scanning mutagenesis for evaluting the contribution of indi
 
 Web-server
 =========
-We strongly encourage the use of webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
+We strongly recommend user-friendly webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
+
+Graphical output provided on webserver
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="500px"/>
 
 
 Usage
