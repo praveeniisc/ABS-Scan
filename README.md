@@ -21,6 +21,8 @@ Graphical output provided on webserver:
 </tr>
 </table>
 
+Example output can be visualized by clicking here - <a href="http://proline.biochem.iisc.ernet.in/abscan/examples" target="_blank">Examples</a>
+
 Command-line usage
 ==================
 <code>
