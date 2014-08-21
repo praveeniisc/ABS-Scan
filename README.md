@@ -6,7 +6,7 @@ Alanine binding site scanning mutagenesis for evaluting the contribution of indi
 Usage
 ======
 <code>
-Usage: alanine_scanning.py <protein-ligand complex pdb file> <ligand_resno> <pocket_distance_cutoff> <directory to store results>
+Usage: alanine_scanning.py &lt;protein-ligand complex pdb file&gt; &lt;ligand_resno&gt; &lt;pocket_distance_cutoff&gt; &lt;directory to store results&gt;
 Ex: alanine_scanning.py 1a4g_A.pdb 466 4.5 test
 In the above example :
 1a4g_A.pdb -- It is the PDB file containing the protein-ligand complex.
