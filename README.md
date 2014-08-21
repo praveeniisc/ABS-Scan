@@ -13,11 +13,11 @@ Graphical output provided on webserver
 <table>
 <tr>
 <td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="250px" />
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="325px" />
 </td>
 <td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="250px"/>
-<td>
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="325px"/>
+</td>
 </tr>
 </table>
 
