@@ -9,8 +9,17 @@ Web-server
 We strongly recommend user-friendly webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
 
 Graphical output provided on webserver
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="500px"/>
 
+<table>
+<tr>
+<td>
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="400px" />
+</td>
+<td>
+<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="500px"/>
+<td>
+</tr>
+</table>
 
 Usage
 ======
