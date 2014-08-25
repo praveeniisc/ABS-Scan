@@ -28,20 +28,19 @@ Command-line usage
 <code>
 ./alanine_scanning.py -h </br>
 usage: alanine_scanning.py [-h] [-f PDBFILE] [-n RESNO] [-d DIST] [-o OUTDIR]</br>
-
+</code>
 Arguments:</br>
 
-  -h, --help  show this help message and exit
+  <code>-h, --help  show this help message and exit</code>
   
-  -f PDBFILE  PDB file of protein-ligand complex
+  <code>-f PDBFILE  PDB file of protein-ligand complex</code>
   
-  -n RESNO    residue number of HETATM in protein-ligand complex
+  <code>-n RESNO    residue number of HETATM in protein-ligand complex</code>
   
-  -d DIST     distane-cutoff to use for defining the binding site
+  <code>-d DIST     distane-cutoff to use for defining the binding site</code>
   
-  -o OUTDIR   output directory to store the results
-
-</code></br>
+  <code>-o OUTDIR   output directory to store the results</code>
+</br>
 
 Ex:<code>./alanine_scanning.py -f 1a4g_A.pdb -n 466 -d 4.5 -o ./test </code>
 </br>
