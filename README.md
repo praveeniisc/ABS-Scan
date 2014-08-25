@@ -26,10 +26,19 @@ Example output can be visualized by clicking here - <a href="http://proline.bioc
 Command-line usage
 ==================
 <code>
-Usage: alanine_scanning.py &lt;protein-ligand complex pdb file&gt; &lt;ligand_resno&gt; &lt;pocket_distance_cutoff&gt; &lt;directory to store results&gt;
+./alanine_scanning.py -h
+usage: alanine_scanning.py [-h] [-f PDBFILE] [-n RESNO] [-d DIST] [-o OUTDIR]
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -f PDBFILE  PDB file of protein-ligand complex
+  -n RESNO    residue number of HETATM in protein-ligand complex
+  -d DIST     distane-cutoff to use for defining the binding site
+  -o OUTDIR   output directory to store the results
+
 </code></br>
 
-Ex:<code> ./alanine_scanning.py 1a4g_A.pdb 466 4.5 test</code>
+Ex:<code>./alanine_scanning.py -f 1a4g_A.pdb -n 466 -d 4.5 -o ./test </code>
 </br>
 
 In the above example :
