@@ -2,6 +2,7 @@
 
 import sys
 import os
+import argparse
 import __main__
 __main__.pymol_argv = ['pymol','-rqkc'] # Pymol: quiet and no GUI
 
@@ -41,6 +42,28 @@ except ImportError :
 	pass
 
 #Ensuring whether the right number of arguments are being passed with the script
+#set default args as -h , if no args:
+if len(sys.argv) == 1: 
+	sys.argv[1:] = ["-h"]
+	print "Wrong number of arguments entered"
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-f', action='store', dest='pdbfile',
+                    help='PDB file of protein-ligand complex')
+
+parser.add_argument('-n', action='store', dest='resno',
+                    help='residue number of HETATM in protein-ligand complex')
+
+parser.add_argument('-d', action='store', dest='dist',
+                    help='distane-cutoff to use for defining the binding site')
+
+parser.add_argument('-o', action='store', dest='outdir',
+                    help='output directory to store the results')
+
+inputs = parser.parse_args()
+
+'''
 if len(sys.argv) != 5:
 	print 'Usage: alanine_scanning.py <protein-ligand complex pdb file> <ligand_resno> <pocket_distance_cutoff> <directory to store results>'
 	print 'Ex: alanine_scanning.py 1a4g_A.pdb 466 4.5 test'
@@ -50,11 +73,19 @@ if len(sys.argv) != 5:
 	print '4.5 is the distance cut-off used to select the binding site residues from mentioned ligand atom'
 	print 'test is the directory that would be created to store the results.'
 	sys.exit(1)
+'''
+
+
+
+
 
 #Ensuring that PDB file exists at the right place 
 from os import path, access, R_OK
 
-PDB_FILE = sys.argv[1]
+PDB_FILE = inputs.pdbfile
+DIST = inputs.dist
+HETIDNO = inputs.resno
+
 if path.exists(PDB_FILE) and path.isfile(PDB_FILE) and access(PDB_FILE, R_OK):
 	pass
 else:
@@ -62,7 +93,7 @@ else:
 	sys.exit(1)
 
 #Checking if the results directory exists
-dirname = sys.argv[4]
+dirname = inputs.outdir
 
 try:
 	os.makedirs(dirname)
@@ -76,7 +107,7 @@ except OSError:
 
 #Creating a receptor file with only protein atoms with modeller
 from os import path, access, R_OK
-PDB_FILE = sys.argv[1]
+PDB_FILE = inputs.pdbfile
 
 #Checking for the existence of the PDB file and the read permissions
 if path.exists(PDB_FILE) and path.isfile(PDB_FILE) and access(PDB_FILE,R_OK):
@@ -99,14 +130,14 @@ env.edat.dynamic_lennard=True
 env.edat.contact_shell = 4.0
 env.edat.update_dynamic = 0.39
 
-m = complete_pdb(env, sys.argv[1])
-m.write(file=sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_receptor.pdb'))
+m = complete_pdb(env, inputs.pdbfile)
+m.write(file=dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdb'))
 
-f = open(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_receptor.pdb'))
+f = open(dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdb'))
 lines = f.readlines()
 f.close()
 
-f = open(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_noendreceptor.pdb'),"w")
+f = open(dirname+'/'+PDB_FILE.replace('.pdb','_noendreceptor.pdb'),"w")
 
 for line in lines:
   if line!="END"+"\n":
@@ -119,27 +150,27 @@ import pymol
 
 from pymol import cmd
 
-print 'Extracting out the binding site residues with the specified cut-off ='+sys.argv[3]+' Angstroms'
+print 'Extracting out the binding site residues with the specified cut-off ='+DIST+' Angstroms'
 pymol.finish_launching()
-pymol.cmd.load(sys.argv[1])
+pymol.cmd.load(PDB_FILE)
 var = ' not'+'(alt \'\'+A)'
 pymol.cmd.remove(var)
 pymol.cmd.remove('hydrogens')
-pymol.cmd.select('ligand', 'resid '+sys.argv[2]+' and hetatm')
-pymol.cmd.save(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdb'), (('ligand')))
-pymol.cmd.select('native_pocket', '(byres (resi '+sys.argv[2]+' and hetatm around '+sys.argv[3]+'))')
-pymol.cmd.save(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_native_pocket.pdb'), (('native_pocket')))
+pymol.cmd.select('ligand', 'resid '+HETIDNO+' and hetatm')
+pymol.cmd.save(dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdb'), (('ligand')))
+pymol.cmd.select('native_pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+'))')
+pymol.cmd.save(dirname+'/'+PDB_FILE.replace('.pdb','_native_pocket.pdb'), (('native_pocket')))
 
 native_res_dict = { 'native_res_list' : [] }
 pymol.cmd.iterate("native_pocket and name CA and not hetatm","native_res_list.append((resi,resn))",space=native_res_dict)
 
 pymol.cmd.delete('ligand')
 pymol.cmd.delete('native_pocket')
-pymol.cmd.delete(sys.argv[1].replace('.pdb',''))
+pymol.cmd.delete(PDB_FILE.replace('.pdb',''))
 
 #Concatinating the files to get complex.pdb
-filenames = [sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_noendreceptor.pdb'),sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdb')]
-with open(sys.argv[4]+'/complex.pdb', 'w') as outfile:
+filenames = [dirname+'/'+PDB_FILE.replace('.pdb','_noendreceptor.pdb'),dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdb')]
+with open(dirname+'/complex.pdb', 'w') as outfile:
     for fname in filenames:
         with open(fname) as infile:
             outfile.write(infile.read())
@@ -149,13 +180,13 @@ ligand_dict = { 'lig_list' : [] }
 res_dict = { 'res_list' : [] }
 
 #Extracting out binding site residues from pymol
-pymol.cmd.load(sys.argv[4]+'/complex.pdb')
+pymol.cmd.load(dirname+'/complex.pdb')
 
-pymol.cmd.select('pocket', '(byres (resi '+sys.argv[2]+' and hetatm around '+sys.argv[3]+'))')
+pymol.cmd.select('pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+'))')
 pymol.cmd.iterate("pocket and name CA and not hetatm","res_list.append((resi,resn))",space=res_dict)
-pymol.cmd.select('ligand', 'resid '+sys.argv[2]+' and hetatm')
+pymol.cmd.select('ligand', 'resid '+HETIDNO+' and hetatm')
 pymol.cmd.iterate("ligand","lig_list.append((resn))",space=ligand_dict)
-pymol.cmd.save(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_binding_site.pdb'), (('pocket'))) #Storing the binding site in PDB format
+pymol.cmd.save(dirname+'/'+PDB_FILE.replace('.pdb','_binding_site.pdb'), (('pocket'))) #Storing the binding site in PDB format
 pymol.cmd.quit()
 
 uniq_ligand = []
@@ -164,7 +195,7 @@ uniq_ligand = []
 
 #Warning if other hetatms are found in the binding site
 import re # Importing regular expression
-bs_file_open = open(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_native_pocket.pdb'), "r")
+bs_file_open = open(dirname+'/'+PDB_FILE.replace('.pdb','_native_pocket.pdb'), "r")
 hetatmsite = []
 
 def get_word(text, position):
@@ -324,12 +355,12 @@ def alanine_scanning_pdb(pdb_file, residue_id, outfile):
 
 #Now performing alanine scanning for all the residues in the binding site
 for i in range(0, binding_site_size):
-    alanine_scanning_pdb(sys.argv[4]+'/complex.pdb', int(res_dict['res_list'][i][0]), sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb')
+    alanine_scanning_pdb(dirname+'/complex.pdb', int(res_dict['res_list'][i][0]), dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb')
     #Creating a receptor file with only protein atoms
     import re # Importing regular expression
-    pdb_file_open = open(sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb', "r")
+    pdb_file_open = open(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb', "r")
 
-    f = open(sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdb','w')
+    f = open(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdb','w')
 
     for line in pdb_file_open:
          if re.match("(.*)^ATOM(.*)", line):
@@ -367,9 +398,9 @@ def receptor_preparation(receptor, output):
 print "Preparing the Receptor Files ..."
 for i in range(0, binding_site_size):
 	print 'Preparing the PDBQT file for -'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdb'
-	receptor_preparation(sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdb', sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdbqt')
+	receptor_preparation(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdb', dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdbqt')
 
-receptor_preparation(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_receptor.pdb'),sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_receptor.pdbqt'))
+receptor_preparation(dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdb'),dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdbqt'))
 
 print "Done with preparing all the receptor files."
 
@@ -408,7 +439,7 @@ def ligand_preparation(ligand, output):
 				  attach_nonbonded_fragments=attach_nonbonded_fragments,
 				  attach_singletons=attach_singletons)
 
-ligand_preparation(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdb'), sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdbqt'))
+ligand_preparation(dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdb'), dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdbqt'))
 
 print "Done with preparing the ligand file."
 
@@ -433,7 +464,7 @@ def autodock_scoring(receptor, ligand):
 	receptorfilename =  receptor
 	ligandfilename =  ligand
 	write_file_mode = False
-	outputfilename = sys.argv[4]+'/Alanine_Scanning_Binding_Energies_Result.csv'
+	outputfilename = dirname+'/Alanine_Scanning_Binding_Energies_Result.csv'
 	parameter_library_filename = None
 	exclude_torsFreeEnergy = False
 	verbose = None
@@ -505,13 +536,13 @@ def autodock_scoring(receptor, ligand):
 
 
 for i in range(0, binding_site_size):
-	autodock_scoring(sys.argv[4]+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdbqt', sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdbqt'))
+	autodock_scoring(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdbqt', dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdbqt'))
 
-autodock_scoring(sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_receptor.pdbqt'),sys.argv[4]+'/'+sys.argv[1].replace('.pdb','_ligand.pdbqt'))
+autodock_scoring(dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdbqt'),dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdbqt'))
 
-print 'All the calculations completed successfully. The results are present in '+ sys.argv[4]+'/Alanine_Scanning_Binding_Energies_Result.txt'
+print 'All the calculations completed successfully. The results are present in '+ dirname+'/Alanine_Scanning_Binding_Energies_Result.txt'
 
-correspondences = open(sys.argv[4]+'/correspondences.txt',"w")
+correspondences = open(dirname+'/correspondences.txt',"w")
 
 for i in range(0,binding_site_size):
     corr = native_res_dict['native_res_list'][i][1]+'_'+native_res_dict['native_res_list'][i][0]+','+res_dict['res_list'][i][1]+'_'+res_dict['res_list'][i][0]+'\n'
