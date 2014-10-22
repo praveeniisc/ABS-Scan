@@ -78,7 +78,7 @@ parser.add_argument('-f', action='store', required=True, dest='pdbfile',
                     help='PDB file of protein-ligand complex')
 
 parser.add_argument('-n', action='store', required=True, dest='resno',
-                    help='residue number of HETATM in protein-ligand complex\n(You can also specify a range in case your ligand is oligomer. Ex. 1J84 has BGC in the range of 401-404)')
+                    help='residue number of HETATM in protein-ligand complex\n(You can also specify a range in case your ligand is oligomer. Ex. 1J84 has BGC in the range of 401-404. So the command would be ./alanine_scanning.py -f 1j84_A.pdb -n 401-404 -d 4.5 -o 1j84_BGC)')
 
 parser.add_argument('-d', action='store', required=True, dest='dist',
                     help='distane-cutoff to use for defining the binding site')
