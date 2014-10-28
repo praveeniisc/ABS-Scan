@@ -1,21 +1,21 @@
 #!/usr/bin/python
 
 '''
-####################################################################################################
+#######################################################################################################################
 					alanine_scanning.py
 This script performs the alanine scanning mutations for residues in the binding site and is used by
-ABS-Scan (http://proline.biochem.iisc.ernet.in/abscan/). This script uses the libraries from Pymol, 
-Modeller and Autodock tools to perform the analysis. These tools have been appropriately cited in the 
-publication - (http://f1000research.com/articles/3-214/v1). Although 80% of the code (as pointed out 
-by the reviewers!!!) might be familiar to someone who uses these tools regularly, we nevertheless believe 
-that this script could be handy to quickly perform ASM on given protein ligand complexes. 
-These parts in the code have been correspondingly highlighted and cited. 
+ABS-Scan (http://proline.biochem.iisc.ernet.in/abscan/). This script uses the libraries from Pymol, Modeller 
+and Autodock tools to perform the analysis. These tools have been appropriately cited in the publication - 
+(http://f1000research.com/articles/3-214/v1). Although 80% of the code (as pointed out by the reviewers!!!) 
+might be familiar to someone who uses these tools regularly, we nevertheless believe that this script could be 
+handy to quickly perform ASM on given protein ligand complexes. These parts in the code have been correspondingly 
+highlighted and cited. 
 
-We also intend (actually started of with!!!) to make it available in the form of Pymol plugin in future. 
-(After submission of my 'Thesis'). 
+We also intend (actually started of with!!!) to make it available in the form of Pymol plugin in future (After 
+submission of my 'Thesis'). 
 
-We strongly encourage the use of our web-server - (http://proline.biochem.iisc.ernet.in/abscan/) for 
-graphical display of the output. 
+We strongly encourage the use of our web-server - (http://proline.biochem.iisc.ernet.in/abscan/) for graphical
+display of the output. 
 
 Please feel free to contact us if you have suggestions or queries
 1. Praveen Anand
@@ -23,7 +23,7 @@ Email: praveen@biochem.iisc.ernet.in
 
 2. Prof. Nagasuma Chandra
 Email: nchandra@biochem.iisc.ernet.in
-####################################################################################################
+#######################################################################################################################
 '''
 import sys
 import os
@@ -78,7 +78,7 @@ parser.add_argument('-f', action='store', required=True, dest='pdbfile',
                     help='PDB file of protein-ligand complex')
 
 parser.add_argument('-n', action='store', required=True, dest='resno',
-                    help='residue number of HETATM in protein-ligand complex\n(You can also specify a range in case your ligand is oligomer. Ex. 1J84 has BGC in the range of 401-404. So the command would be ./alanine_scanning.py -f 1j84_A.pdb -n 401-404 -d 4.5 -o 1j84_BGC)')
+                    help='residue number of HETATM in protein-ligand complex')
 
 parser.add_argument('-d', action='store', required=True, dest='dist',
                     help='distane-cutoff to use for defining the binding site')
@@ -87,6 +87,21 @@ parser.add_argument('-o', action='store', required=True, dest='outdir',
                     help='output directory to store the results')
 
 inputs = parser.parse_args()
+
+'''
+if len(sys.argv) != 5:
+	print 'Usage: alanine_scanning.py <protein-ligand complex pdb file> <ligand_resno> <pocket_distance_cutoff> <directory to store results>'
+	print 'Ex: alanine_scanning.py 1a4g_A.pdb 466 4.5 test'
+	print 'In the above example :'
+	print '1a4g_A.pdb is the PDB file containing the protein-ligand complex.'
+	print '466 is the residue ID for the ligand - ZMR'
+	print '4.5 is the distance cut-off used to select the binding site residues from mentioned ligand atom'
+	print 'test is the directory that would be created to store the results.'
+	sys.exit(1)
+'''
+
+
+
 
 
 #Ensuring that PDB file exists at the right place 
@@ -141,6 +156,17 @@ env.edat.contact_shell = 4.0
 env.edat.update_dynamic = 0.39
 
 m = complete_pdb(env, inputs.pdbfile)
+
+wildtype_dope_score = m.assess_normalized_dope()
+
+headerline = str('Protein,DOPE Score\n')
+wildtype_score = str('WT,') + str(wildtype_dope_score) + str('\n')
+
+dopefile = open(dirname+'/DOPE_scores.txt',"w")
+line = dopefile.write(str(headerline))
+line = dopefile.write(str(wildtype_score))
+dopefile.close()
+
 m.write(file=dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdb'))
 
 f = open(dirname+'/'+PDB_FILE.replace('.pdb','_receptor.pdb'))
@@ -168,7 +194,7 @@ pymol.cmd.remove(var)
 pymol.cmd.remove('hydrogens')
 pymol.cmd.select('ligand', 'resid '+HETIDNO+' and hetatm')
 pymol.cmd.save(dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdb'), (('ligand')))
-pymol.cmd.select('native_pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+'))')
+pymol.cmd.select('native_pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+' and not resn GLY and not resn PRO))')
 pymol.cmd.save(dirname+'/'+PDB_FILE.replace('.pdb','_native_pocket.pdb'), (('native_pocket')))
 
 native_res_dict = { 'native_res_list' : [] }
@@ -192,7 +218,7 @@ res_dict = { 'res_list' : [] }
 #Extracting out binding site residues from pymol
 pymol.cmd.load(dirname+'/complex.pdb')
 
-pymol.cmd.select('pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+'))')
+pymol.cmd.select('pocket', '(byres (resi '+HETIDNO+' and hetatm around '+DIST+' and not resn GLY and not resn PRO))')
 pymol.cmd.iterate("pocket and name CA and not hetatm","res_list.append((resi,resn))",space=res_dict)
 pymol.cmd.select('ligand', 'resid '+HETIDNO+' and hetatm')
 pymol.cmd.iterate("ligand","lig_list.append((resn))",space=ligand_dict)
@@ -230,14 +256,11 @@ for x in ligand_dict['lig_list']:
 		uniq_ligand.append(x)
 
 #print uniq_ligand[0]
-'''
-####################################################################
-This removes the check requiring only one ligand type to be present
-####################################################################
+
 if (len(uniq_ligand) != 1):
 	print "Something is wrong with the ligand. Either the resid does not correspond to a ligand or there is more than one ligand"
 	sys.exit(1)
-'''
+
 
 
 binding_site_size = len(res_dict['res_list'])
@@ -252,19 +275,19 @@ print 'Running Modeller to create alanine mutants in binding site'
 env.io.hetatm = True
 
 '''
-####################################################################################################
+#######################################################################################################################
 				'Mutate model' using Modeller
 This part of the code has been obtained from the modeller wiki - http://salilab.org/modeller/wiki/Mutate%20model
 
-The script below takes a given PDB file, and mutates a single residue. The residue's position is 
-then optimized, and the unoptimized and optimized energies are reported.
+The script below takes a given PDB file, and mutates a single residue. The residue's position is then optimized, and 
+the unoptimized and optimized energies are reported.
 
-Note that this script if run multiple times will produce the same model each time, because Modeller is deterministic.
+Note that this script if run multiple times will produce the same model each time, because Modeller is deterministic. 
 If you want to build multiple models, change the value of rand_seed (see comments in the script) each time. This may 
 be useful if some models, for example, cannot be optimized due to steric clashes. 
 
-Please not that small change has been made to fix the residue number..by default it starts with 0.
-####################################################################################################
+Please not that small changes that have been made to fix the residue number..by default it starts with 0.
+#######################################################################################################################
 '''
 
 def optimize(atmsel, sched):
@@ -301,7 +324,7 @@ def make_restraints(mdl1, aln):
                 spline_dx=0.3, spline_min_points = 5, aln=aln,
                 spline_on_site=True)
 
-def alanine_scanning_pdb(pdb_file, residue_id, outfile):
+def alanine_scanning_pdb(pdb_file, residue_id, outfile, dopescorefile):
     # Read the original PDB file and copy its sequence to the alignment array:
     mdl1 = model(env, file=pdb_file)
     ali = alignment(env)
@@ -378,6 +401,16 @@ def alanine_scanning_pdb(pdb_file, residue_id, outfile):
 
     #give a proper name
     mdl1.write(file=outfile)
+
+    #Assessing the quality of the model using DOPE score and writing it to a file
+    dope_score = mdl1.assess_normalized_dope()
+    modoutfile = (outfile.split('/')[-1]).replace('_complex.pdb','')
+    mutant_score = str(modoutfile)+str(',')+str(dope_score)+str('\n')
+
+    dopefile = open(dopescorefile,"a")
+    line = dopefile.write(str(mutant_score))
+    dopefile.close()
+
     
     #delete the temporary file
     os.remove(pdb_file+'.tmp')
@@ -391,7 +424,7 @@ Nothing special here....Just ensuring that proper labels are attached to file ge
 
 #Now performing alanine scanning for all the residues in the binding site
 for i in range(0, binding_site_size):
-    alanine_scanning_pdb(dirname+'/complex.pdb', int(res_dict['res_list'][i][0]), dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb')
+    alanine_scanning_pdb(dirname+'/complex.pdb', int(res_dict['res_list'][i][0]), dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb', dirname+'/DOPE_scores.txt')
     #Creating a receptor file with only protein atoms
     import re # Importing regular expression
     pdb_file_open = open(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA_complex.pdb', "r")
@@ -410,14 +443,14 @@ for i in range(0, binding_site_size):
 print 'Done with generation of mutants.'
 
 '''
-####################################################################################################
+#######################################################################################################################
 				Autodock Tools - prepare_receptor4.py
 http://autodock.scripps.edu/faqs-help/how-to/how-to-prepare-a-receptor-file-for-autodock4
 
-This part of the code deals with preparation of the receptor file for scoring the interactions. We did not 
-feel any change would be required in the function present in the original file. By default the repairs include 
-check hydrogens and add gasteiger charges.
-####################################################################################################
+This part of the code deals with preparation of the receptor file for scoring the interactions. We did not feel any 
+change would be required in the function present in the original file. By default the repairs include check hydrogens
+and add gasteiger charges.
+#######################################################################################################################
 '''
 
 #Starting with preparation of the AutodockTools setup
@@ -454,13 +487,13 @@ print "Done with preparing all the receptor files."
 print "Preparing the ligand file ..."
 
 '''
-####################################################################################################
+#######################################################################################################################
 				Autodock Tools - prepare_ligand4.py
 http://autodock.scripps.edu/faqs-help/how-to/how-to-prepare-a-ligand-file-for-autodock4
 
-The function for generating the pdbqt for the ligand. Again here we did not feel that change would be 
-required in this funciton and hence is retained as such.
-####################################################################################################
+The function for generating the pdbqt for the ligand. Again here we did not feel that change would be required in this
+funciton and hence is retained as such.
+#######################################################################################################################
 '''
 
 from AutoDockTools.MoleculePreparation import AD4LigandPreparation
@@ -518,15 +551,15 @@ def check_types(molecule,std_types):
     return non_std            
 
 '''
-####################################################################################################
+#######################################################################################################################
 				    Compute Autdock41 score
 				  compute_AutoDock41_score.py
-The successfully generated PDBQT files of both the ligands and the proteins are then evaluated for their 
-scores.Please note that there is no docking performed here. In general assumptions made during ASM techinque 
-is that the mutation does not cause large structural differences in the protein and the binding mode of the 
-ligand remains the same. Hence this will give a quantitative score reflecting the individual contribution of 
-the residue being mutated towards ligand recognition.
-####################################################################################################
+The successfully generated PDBQT files of both the ligands and the proteins are then evaluated for their scores.
+Please note that there is no docking performed here. In general assumptions made during ASM techinque is that the 
+mutation does not cause large structural differences in the protein and the binding mode of the ligand remains the 
+same. Hence this will give a quantitative score reflecting the individual contribution of the residue being mutated 
+towards ligand recognition.
+#######################################################################################################################
 '''
 def autodock_scoring(receptor, ligand):
 	receptorfilename =  receptor
@@ -603,12 +636,12 @@ def autodock_scoring(receptor, ligand):
 	optr.close()
 
 '''
-####################################################################################################
-Following 10 lines are the most important part of the code which ensures that mutations are performed 
-at the right residue numbers. Note PDB files can have multiple breaks this should be taken care of and 
-hence the PDB file is renumbered. Meanwhile the correspondeces file stores the correspondences between
-the original residue numbers and the new residue numbers.
-####################################################################################################
+#######################################################################################################################
+Following 10 lines are the most important part of the code which ensures that mutations are performed at the right 
+residue numbers. Note PDB files can have multiple breaks this should be taken care of and hence the PDB file is 
+renumbered. Meanwhile the correspondeces file stores the correspondences between the original residue numbers and 
+the new residue numbers.
+#######################################################################################################################
 '''
 for i in range(0, binding_site_size):
 	autodock_scoring(dirname+'/'+str(native_res_dict['native_res_list'][i][1])+'_'+str(native_res_dict['native_res_list'][i][0])+'_ALA.pdbqt', dirname+'/'+PDB_FILE.replace('.pdb','_ligand.pdbqt'))
