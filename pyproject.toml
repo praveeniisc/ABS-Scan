@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abscan"
+version = "1.0.0"
+description = "Alanine binding site scanning mutagenesis (ABS-Scan) for protein-ligand complexes"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Praveen Anand", email = "praveen@biochem.iisc.ernet.in" },
+    { name = "Nagasuma Chandra", email = "nchandra@biochem.iisc.ernet.in" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "biopython",
+    "matplotlib",
+    "seaborn"
+]
+
+[project.urls]
+Homepage = "http://proline.biochem.iisc.ernet.in/abscan"
+
+[project.scripts]
+abscan = "abscan.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["abscan*"]

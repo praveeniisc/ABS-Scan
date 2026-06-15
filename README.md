@@ -1,67 +1,119 @@
-ABS-Scan
-========
+# abscan: Alanine Binding Site Mutagenesis Scanning
 
-Alanine binding site scanning mutagenesis for evaluting the contribution of individual residues at the binding site towards small-molecule ligand recognition.
+`abscan` is a modern, reusable Python 3 package to perform **Alanine Scanning Mutagenesis (ASM)** on protein-ligand complexes. It selects binding pocket residues surrounding a ligand based on a distance cutoff, performs virtual alanine mutations, optimizes the mutated structures, and reports the individual binding energy contribution ($\Delta\Delta G$) of each residue along with structural stability changes ($\Delta\text{DOPE}$).
 
+The package leverages **MODELLER** for structure refinement, **PyMOL** for structural manipulations, **OpenBabel** for coordinate conversion, and the **AutoDock Vina** Python API for binding affinity calculations.
 
-Web-server
-=========
-We strongly recommend user-friendly webserver available at <a href="http://proline.biochem.iisc.ernet.in/abscan" target="_blank">http://proline.biochem.iisc.ernet.in/abscan</a>
+---
 
-Graphical output provided on webserver:
+## Installation
 
-<table>
-<tr>
-<td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_ddG.png" width="325px" />
-</td>
-<td>
-<img src="http://proline.biochem.iisc.ernet.in/abscan/ABSCAN_residuecontrib.png" width="325px"/>
-</td>
-</tr>
-</table>
+Because the package depends on scientific libraries that require compiled binaries, we recommend using **Conda** to manage dependencies.
 
-Example output can be visualized by clicking here - <a href="http://proline.biochem.iisc.ernet.in/abscan/examples" target="_blank">Examples</a>
+### 1. Create a Conda Environment and Install Dependencies
 
-Command-line usage
-==================
-<code>
-./alanine_scanning.py -h </br>
-usage: alanine_scanning.py [-h] [-f PDBFILE] [-n RESNO] [-d DIST] [-o OUTDIR]</br>
-</code>
-Arguments:</br>
+You can create a dedicated environment named `abscan` and install all necessary packages from the `salilab` and `conda-forge` channels.
 
-  <code>-h, --help  show this help message and exit</code>
-  
-  <code>-f PDBFILE  PDB file of protein-ligand complex</code>
-  
-  <code>-n RESNO    residue number of HETATM in protein-ligand complex</code>
-  
-  <code>-d DIST     distane-cutoff to use for defining the binding site</code>
-  
-  <code>-o OUTDIR   output directory to store the results</code>
-</br>
+*Note: MODELLER requires an academic license key. Set the `KEY_MODELLER` environment variable before creating the environment.*
 
-Ex:<code>./alanine_scanning.py -f 1a4g_A.pdb -n 466 -d 4.5 -o ./test </code>
-</br>
+```bash
+# Set your MODELLER academic license key (e.g., XXXXXX)
+export KEY_MODELLER=XXXXXX
 
-In the above example :
+# Create env and install dependencies
+conda create -n abscan -c salilab -c conda-forge --yes \
+  python=3.12 \
+  modeller \
+  pymol-open-source \
+  vina \
+  openbabel \
+  matplotlib \
+  pandas \
+  seaborn \
+  biopython
+```
 
-1a4g_A.pdb -- It is the PDB file containing the protein-ligand complex.
+### 2. Install the `abscan` Package
 
-466 -- is the residue ID for the ligand - ZMR
+Activate the environment and install the package from source:
 
-4.5 -- is the distance cut-off used to select the binding site residues from mentioned ligand atom
+```bash
+# Activate the environment
+conda activate abscan
 
-test -- is the directory that would be created to store the results.
+# Install the package in editable mode
+pip install -e .
+```
 
-Dependencies
-============
-Please ensure following are installed on your system:
-<ul>
-<li><a href="https://salilab.org/modeller/" target="_blank">Modeller</a></li>
-<li><a href="http://mgltools.scripps.edu/downloads" target="_blank">MGL autodockTools</a></li>
-<li><a href="www.pymol.org/" target="_blank">Pymol</a></li>
-</ul>
+---
 
+## Command-Line Usage
 
+Once installed, the pipeline is available via the command-line utility `abscan`.
+
+```bash
+abscan -f <protein_ligand.pdb> -n <ligand_residue_number> -d <cutoff_distance> -o <output_directory>
+```
+
+### Arguments
+
+| Argument | Long Option | Required | Default | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `-f` | `--pdb` | Yes | - | PDB file containing the protein-ligand complex. |
+| `-n` | `--resno` | Yes | - | Residue ID (number) of the HETATM ligand in the PDB. |
+| `-d` | `--dist` | No | `4.5` | Distance cutoff (Å) from any ligand atom to select pocket residues. |
+| `-o` | `--outdir` | Yes | - | Output directory to write all structures and results. |
+| `-s` | `--sf` | No | `vina` | Scoring function to use (`vina`, `ad4`, or `vinardo`). |
+
+### Example
+
+Run the scanner on the sample complex `1a4g_A.pdb` (ligand ZMR is residue `466`):
+
+```bash
+abscan -f 1a4g_A.pdb -n 466 -d 4.5 -o ./test_run
+```
+
+---
+
+## Output Files
+
+The utility will create the output directory and generate the following results:
+
+1. **`abscan_results.csv`**: A CSV file containing:
+   - `Residue`: Residue name and original index (e.g. `ARG115`).
+   - `DOPE`: Normalized DOPE score of the mutant structure.
+   - `dDOPE`: Change in structural stability ($\text{DOPE}_{mutant} - \text{DOPE}_{WT}$). Positive values indicate destabilizing mutations.
+   - `Affinity`: Binding affinity calculated by AutoDock Vina (kcal/mol).
+   - `ddG`: Change in binding affinity ($\Delta\Delta G_{binding} = \Delta G_{mutant} - \Delta G_{WT}$). Positive values mean the WT residue is stabilizing (contributes positively to binding affinity).
+2. **`binding_affinity_changes.png`**: A high-resolution bar plot showing residue contribution to binding affinity ($\Delta\Delta G$).
+   - Green bars represent stabilizing residues (affinity decreases when mutated to alanine).
+   - Red bars represent destabilizing residues.
+3. **`dope_score_changes.png`**: A high-resolution bar plot showing the impact of mutations on protein stability ($\Delta\text{DOPE}$).
+   - Red bars indicate destabilizing mutations (increased DOPE).
+   - Green bars indicate stabilizing mutations.
+4. **Mutant Structures**: All mutated PDB structures (e.g., `ARG_115_ALA.pdb`) and their prepared PDBQT files.
+
+---
+
+## Python API Usage
+
+You can also run the scanner directly in your Python scripts:
+
+```python
+from abscan import AlanineScanner, plot_results
+
+# Initialize scanner
+scanner = AlanineScanner(
+    pdb_file="1a4g_A.pdb",
+    resno="466",
+    distance=4.5,
+    outdir="./test_run",
+    scoring_function="vina"
+)
+
+# Run the mutagenesis and rescoring workflow
+csv_path = scanner.run()
+
+# Generate publication-quality plots
+plot_results(csv_path, "./test_run")
+```
